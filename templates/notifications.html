@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="delete-success-alert" class="alert alert-success alert-dismissible fade show" role="alert" style="display:none; max-width: 600px; margin: 20px auto 0 auto;">
+  Pranešimas sėkmingai ištrintas
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<script>
+    // Paslėpti alert'ą tiek įprastai užkrovus, tiek grįžus iš cache
+    window.addEventListener('pageshow', function() {
+        var alert = document.getElementById('delete-success-alert');
+        if (alert) alert.style.display = 'none';
+    });
+</script>
+
+{% if messages %}
+  <div class="container mt-3" style="max-width: 600px;">
+    {% for message in messages %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+<div class="container mt-4">
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> Grįžti atgal</a>
+    <div class="row">
+        {% if user.is_staff %}
+        <div class="col-md-8">
+        {% else %}
+        <div class="col-md-12">
+        {% endif %}
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bell-fill"></i> Pranešimai
+                        {% if unread_count > 0 %}
+                        <span class="badge bg-danger">{{ unread_count }}</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for notification in notifications %}
+                        <div class="list-group-item list-group-item-action {% if not notification.is_read_by|yesno:'true,false' %}fw-bold{% endif %}"
+                             data-notification-id="{{ notification.id }}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ notification.title }}</h5>
+                                <small class="text-muted">{{ notification.created_at|date:"Y-m-d H:i" }}</small>
+                            </div>
+                            <p class="mb-1">{{ notification.content }}</p>
+                            <small class="text-muted">Sukūrė: {{ notification.created_by.get_full_name|default:notification.created_by.username }}</small>
+                            {% if not notification.is_read_by|yesno:'true,false' %}
+                            <button class="btn btn-sm btn-outline-success mt-2 mark-as-read" data-notification-id="{{ notification.id }}">
+                                <i class="bi bi-check2"></i> Pažymėti kaip perskaitytą
+                            </button>
+                            {% endif %}
+                            {% if user.is_staff %}
+                            <button class="btn btn-sm btn-outline-danger mt-2 ms-2 delete-notification" data-notification-id="{{ notification.id }}">
+                                <i class="bi bi-trash"></i> Ištrinti
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <p class="text-center my-3">Nėra jokių pranešimų</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if user.is_staff %}
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle-fill"></i> Naujas pranešimas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'create_notification' %}" autocomplete="off">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_title" class="form-label">Pavadinimas</label>
+                            {{ form.title }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_content" class="form-label">Turinys</label>
+                            {{ form.content }}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-send-fill"></i> Siųsti pranešimą
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Paslėpti delete-success-alert kai puslapis užkraunamas (jei buvo paliktas)
+    const alert = document.getElementById('delete-success-alert');
+    if (alert) {
+        alert.style.display = 'none';
+    }
+    const notifications = document.querySelectorAll('.mark-as-read');
+    notifications.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const notificationId = this.dataset.notificationId;
+            const notificationItem = this.closest('.list-group-item');
+            
+            fetch(`/mark-notification-as-read/${notificationId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    notificationItem.classList.remove('fw-bold');
+                    this.remove();
+                    
+                    // Update unread count badge
+                    const badge = document.querySelector('.badge.bg-danger');
+                    if (badge) {
+                        const currentCount = parseInt(badge.textContent);
+                        if (currentCount > 1) {
+                            badge.textContent = currentCount - 1;
+                        } else {
+                            badge.remove();
+                        }
+                    }
+                }
+            });
+        });
+    });
+    // Delete notification logic
+    const deleteButtons = document.querySelectorAll('.delete-notification');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const notificationId = this.dataset.notificationId;
+            const notificationItem = this.closest('.list-group-item');
+            if (confirm('Ar tikrai norite ištrinti šį pranešimą?')) {
+                fetch(`/delete-notification/${notificationId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        notificationItem.remove();
+                        // Parodyti alertą
+                        if (alert) {
+                            alert.style.display = 'block';
+                            setTimeout(() => {
+                                if (alert.classList.contains('show')) {
+                                    var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                                    bsAlert.close();
+                                }
+                            }, 3000);
+                        }
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,29 @@
+{% extends "admin/app_list.html" %}
+{% block sidebar %}
+{{ block.super }}
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+    var veiklosZurnalas = Array.from(document.querySelectorAll('a')).find(el => el.textContent && el.textContent.trim() === 'Veiklos žurnalas');
+    if (veiklosZurnalas) {
+        var li = veiklosZurnalas.closest('li');
+        if (li) {
+            // newLi.innerHTML = '<a href="/admin/auth/user/roles-dragdrop/">Teisių valdymas</a>';
+        }
+    }
+
+    var links = document.querySelectorAll('a');
+    links.forEach(function(link) {
+        if (link.textContent.trim() === 'Vartotojai') {
+            var plus = document.createElement('a');
+            plus.href = '/admin/auth/user/add/';
+            plus.title = 'Pridėti vartotoją';
+            plus.style.marginLeft = '8px';
+            plus.style.color = '#0ff';
+            plus.style.fontWeight = 'bold';
+            plus.textContent = '+';
+            link.parentNode.appendChild(plus);
+        }
+    });
+});
+</script>
+{% endblock %} 

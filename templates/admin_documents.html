@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <button class="btn btn-outline-secondary mb-3" onclick="history.back()"><i class="bi bi-arrow-left"></i> Grįžti atgal</button>
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3><i class="bi bi-file-earmark-text"></i> Dokumentų valdymas</h3>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-4">
+                        <i class="bi bi-people-fill"></i> Pagal gyventojus
+                    </h5>
+                    <p class="card-text">Peržiūrėti dokumentus pagal gyventojus</p>
+                    <a href="{% url 'documents_by_residents' %}" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Peržiūrėti
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-4">
+                        <i class="bi bi-house-door-fill"></i> Pagal butus
+                    </h5>
+                    <p class="card-text">Peržiūrėti dokumentus pagal butus</p>
+                    <a href="{% url 'documents_by_apartments' %}" class="btn btn-success">
+                        <i class="bi bi-search"></i> Peržiūrėti
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <button class="btn btn-outline-secondary mb-3" onclick="history.back()"><i class="fas fa-arrow-left me-2"></i>Grįžti atgal</button>
+    <div class="card">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-users me-2"></i>Gyventojai</h5>
+            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#registerResidentModal">
+                <i class="fas fa-user-plus me-2"></i>Naujas gyventojas
+            </button>
+        </div>
+        <div class="card-body">
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Uždaryti"></button>
+            </div>
+            {% endif %}
+            {% if residents %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Vardas</th>
+                                <th>Pavardė</th>
+                                <th>Butas</th>
+                                <th>El. paštas</th>
+                                <th>Telefonas</th>
+                                <th>Gimimo data</th>
+                                <th>Veiksmai</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for resident in residents %}
+                                <tr>
+                                    <td>{{ resident.first_name }}</td>
+                                    <td>{{ resident.last_name }}</td>
+                                    <td>{{ resident.apartment.number }}</td>
+                                    <td>{{ resident.email }}</td>
+                                    <td>{{ resident.phone }}</td>
+                                    <td>{{ resident.birth_date|date:'Y/m/d' }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning me-2" onclick="editResident({{ resident.id }})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteResident({{ resident.id }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Nėra registruotų gyventojų
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Register Resident Modal -->
+<div class="modal fade" id="registerResidentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Naujas gyventojas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'register_resident' %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Vardas</label>
+                        {{ form.first_name }}
+                        {{ form.first_name.errors }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Pavardė</label>
+                        {{ form.last_name }}
+                        {{ form.last_name.errors }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">El. paštas</label>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vartotojo vardas</label>
+                        {{ form.username }}
+                        {{ form.username.errors }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Slaptažodis</label>
+                        {{ form.password }}
+                        {{ form.password.errors }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Buto numeris</label>
+                        {{ form.apartment_number }}
+                        {{ form.apartment_number.errors }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Savininkas</label>
+                        {{ form.is_owner }}
+                        {{ form.is_owner.errors }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefono numeris</label>
+                        {{ form.phone }}
+                        {{ form.phone.errors }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gimimo data</label>
+                        {{ form.birth_date }}
+                        {{ form.birth_date.errors }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Atšaukti</button>
+                    <button type="submit" class="btn btn-success">Registruoti</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Resident Modal -->
+<div class="modal fade" id="editResidentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Redaguoti gyventoją</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editResidentForm" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Vardas</label>
+                        <input type="text" name="first_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Pavardė</label>
+                        <input type="text" name="last_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">El. paštas</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Buto numeris</label>
+                        <input type="text" name="apartment_number" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefono numeris</label>
+                        <input type="tel" name="phone_number" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gimimo data</label>
+                        <input type="date" name="birth_date" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Savininkas</label>
+                        <input type="checkbox" name="is_owner" class="form-check-input">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Atšaukti</button>
+                    <button type="submit" class="btn btn-primary">Išsaugoti</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let initialResidentData = {};
+
+function editResident(id) {
+    fetch(`/residents/${id}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.querySelector('#editResidentForm [name="first_name"]').value = data.first_name;
+            document.querySelector('#editResidentForm [name="last_name"]').value = data.last_name;
+            document.querySelector('#editResidentForm [name="email"]').value = data.email;
+            document.querySelector('#editResidentForm [name="apartment_number"]').value = data.apartment_number;
+            document.querySelector('#editResidentForm [name="phone_number"]').value = data.phone_number;
+            if (data.birth_date) {
+                document.querySelector('#editResidentForm [name="birth_date"]').value = data.birth_date;
+            } else {
+                document.querySelector('#editResidentForm [name="birth_date"]').value = '';
+            }
+            document.querySelector('#editResidentForm [name="is_owner"]').checked = !!data.is_owner;
+            initialResidentData = {
+                first_name: data.first_name,
+                last_name: data.last_name,
+                email: data.email,
+                apartment_number: data.apartment_number,
+                phone_number: data.phone_number,
+                birth_date: data.birth_date || '',
+                is_owner: !!data.is_owner
+            };
+            document.querySelector('#editResidentForm button[type="submit"]').disabled = true;
+            document.querySelectorAll('#editResidentForm input').forEach(input => {
+                input.addEventListener('input', checkResidentFormChanged);
+                input.addEventListener('change', checkResidentFormChanged);
+            });
+            document.getElementById('editResidentForm').action = `/residents/${id}/edit/`;
+            new bootstrap.Modal(document.getElementById('editResidentModal')).show();
+        });
+}
+
+function checkResidentFormChanged() {
+    const current = {
+        first_name: document.querySelector('#editResidentForm [name="first_name"]').value,
+        last_name: document.querySelector('#editResidentForm [name="last_name"]').value,
+        email: document.querySelector('#editResidentForm [name="email"]').value,
+        apartment_number: document.querySelector('#editResidentForm [name="apartment_number"]').value,
+        phone_number: document.querySelector('#editResidentForm [name="phone_number"]').value,
+        birth_date: document.querySelector('#editResidentForm [name="birth_date"]').value,
+        is_owner: document.querySelector('#editResidentForm [name="is_owner"]').checked
+    };
+    let changed = false;
+    for (let key in initialResidentData) {
+        if (current[key] !== initialResidentData[key]) {
+            changed = true;
+            break;
+        }
+    }
+    document.querySelector('#editResidentForm button[type="submit"]').disabled = !changed;
+}
+
+function deleteResident(id) {
+    if (confirm('Ar tikrai norite ištrinti šį gyventoją?')) {
+        fetch(`/residents/${id}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            }
+        });
+    }
+}
+</script>
+{% endblock %} 

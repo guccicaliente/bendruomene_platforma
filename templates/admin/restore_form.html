@@ -1,0 +1,13 @@
+{% extends 'admin/base_site.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Duomenų bazės atstatymas</h2>
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-2">
+            <input type="file" name="backup_file" required class="form-control" accept=".json">
+        </div>
+        <button type="submit" class="btn btn-primary">Atstatyti</button>
+    </form>
+</div>
+{% endblock %} 

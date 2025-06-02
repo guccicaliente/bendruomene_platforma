@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <title>CSRF klaida</title>
+    <meta http-equiv="refresh" content="2">
+    <style>
+        body { background: #222; color: #fff; text-align: center; padding-top: 100px; }
+        .btn { margin-top: 30px; padding: 10px 30px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <h1>Uždrausta (403)</h1>
+    <p>Nepavyko CSRF patvirtinimas. Užklausa nutraukta.</p>
+    <p>Perkraukite puslapį arba bandykite dar kartą.</p>
+    <button class="btn" onclick="window.location.reload();">Perkrauti</button>
+    <script>
+        setTimeout(function(){ window.location.reload(); }, 2000);
+    </script>
+</body>
+</html> 

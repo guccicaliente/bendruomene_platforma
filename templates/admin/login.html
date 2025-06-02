@@ -1,0 +1,19 @@
+{% extends "admin/login.html" %}
+
+{% block errornote %}
+    {% if error == 'sisadmin' or request.GET.error == 'sisadmin' %}
+        <div class="errornote">
+            Tik sistemos administratorius gali prisijungti prie administravimo panelės.
+        </div>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+    {% if error == 'sisadmin' or request.GET.error == 'sisadmin' %}
+        <div class="errornote">
+            Tik sistemos administratorius gali prisijungti prie administravimo panelės.
+        </div>
+    {% endif %}
+    {{ block.super }}
+{% endblock %} 

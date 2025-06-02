@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<style>
+    .birthday-event {
+        background-color: #ff69b4 !important;
+        border-color: #ff1493 !important;
+        border-radius: 20px !important;
+        padding: 5px !important;
+    }
+    .maintenance-past {
+        background-color: #808080 !important;
+        border-color: #696969 !important;
+        border-radius: 20px !important;
+        padding: 5px !important;
+    }
+    .maintenance-current {
+        background-color: #4CAF50 !important;
+        border-color: #45a049 !important;
+        border-radius: 20px !important;
+        padding: 5px !important;
+    }
+    .maintenance-future {
+        background-color: #2196F3 !important;
+        border-color: #1e88e5 !important;
+        border-radius: 20px !important;
+        padding: 5px !important;
+    }
+    .fc-event {
+        cursor: pointer;
+        margin: 2px 0;
+        padding: 2px;
+        transition: transform 0.2s ease;
+    }
+    .fc-event:hover {
+        transform: scale(1.02);
+    }
+    .fc-daygrid-event {
+        white-space: normal !important;
+        align-items: normal !important;
+    }
+    .fc-daygrid-day-events {
+        margin-bottom: 0 !important;
+    }
+    .fc .fc-toolbar-title {
+        font-size: 1.5em;
+        text-transform: capitalize;
+        color: #333;
+    }
+    .fc-day-today {
+        background-color: rgba(33, 150, 243, 0.1) !important;
+    }
+    .fc th {
+        padding: 15px 0;
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9em;
+    }
+    .fc-day-number {
+        font-size: 1.2em;
+    }
+    .fc-daygrid-day {
+        min-height: 120px !important;
+    }
+    .fc-header-toolbar {
+        margin-bottom: 1.5em !important;
+        padding: 10px;
+    }
+    .fc-button-primary {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        border-radius: 20px !important;
+        padding: 8px 16px !important;
+        font-weight: 500 !important;
+        text-transform: uppercase !important;
+        font-size: 0.9em !important;
+    }
+    .fc-button-primary:hover {
+        background-color: #0b5ed7 !important;
+        border-color: #0a58ca !important;
+        transform: translateY(-1px);
+    }
+    .fc-button-primary:disabled {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        opacity: 0.7;
+    }
+    #calendar {
+        background-color: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .legend-item {
+        padding: 8px 15px;
+        border-radius: 15px;
+        margin: 5px;
+        display: flex;
+        align-items: center;
+        transition: transform 0.2s ease;
+    }
+    .legend-item:hover {
+        transform: translateY(-2px);
+    }
+    .legend-color {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <button class="btn btn-outline-secondary mb-3" onclick="history.back()"><i class="fas fa-arrow-left me-2"></i>Grįžti atgal</button>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Kalendorius</h5>
+                </div>
+                <div class="card-body">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+            <div class="card shadow mt-4">
+                <div class="card-header bg-info text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Legenda</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-center">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #ff69b4;"></div>
+                            <span>Gimtadieniai</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #808080;"></div>
+                            <span>Atlikti remontai</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #4CAF50;"></div>
+                            <span>Vykstantys remontai</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #2196F3;"></div>
+                            <span>Suplanuoti remontai</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/lt.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var events = {{ events|safe }};
+    
+    console.log('Kalendoriaus įvykiai:', events);
+    
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'lt',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth'
+        },
+        buttonText: {
+            today: 'Šiandien',
+            month: 'Mėnuo'
+        },
+        events: events,
+        eventDidMount: function(info) {
+            info.el.title = info.event.title;
+        },
+        eventClick: function(info) {
+            if (info.event.extendedProps.type === 'maintenance') {
+                const maintenanceId = info.event.extendedProps.id;
+                window.location.href = `{% url 'maintenance_list' %}?highlight=${maintenanceId}`;
+            }
+        },
+        dayMaxEvents: true,
+        firstDay: 1,
+        displayEventTime: false,
+        height: 'auto',
+        contentHeight: 'auto',
+        aspectRatio: 1.8,
+        expandRows: true,
+        handleWindowResize: true,
+        eventDisplay: 'block',
+        views: {
+            dayGridMonth: {
+                titleFormat: { 
+                    year: 'numeric', 
+                    month: 'long' 
+                }
+            }
+        },
+        eventClassNames: function(arg) {
+            if (arg.event.extendedProps.type === 'birthday') {
+                return ['birthday-event'];
+            } else if (arg.event.extendedProps.type === 'maintenance') {
+                return [arg.event.classNames];
+            }
+            return [];
+        }
+    });
+    
+    calendar.render();
+});
+</script>
+{% endblock %} 

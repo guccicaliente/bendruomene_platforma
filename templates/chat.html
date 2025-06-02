@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <button class="btn btn-outline-secondary mb-3" onclick="history.back()"><i class="fas fa-arrow-left me-2"></i>Grįžti atgal</button>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <i class="fas fa-comments me-2"></i>
+                    <h5 class="mb-0">Bendras chat'as</h5>
+                </div>
+                <div class="card-body" id="chat-messages" style="max-height: 400px; overflow-y: auto;">
+                    {% for msg in chat_messages %}
+                    <div class="chat-message mb-3" data-id="{{ msg.id }}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ msg.user.get_full_name|default:msg.user.username }}</strong>
+                                <span class="text-muted small">{{ msg.created_at|date:'Y-m-d H:i' }}{% if msg.is_edited %} <em>(redaguota)</em>{% endif %}</span>
+                            </div>
+                            {% if user.is_staff %}
+                                <div>
+                                    {% if msg.user == user %}
+                                        <button class="btn btn-sm btn-outline-secondary edit-btn">Redaguoti</button>
+                                    {% endif %}
+                                    <button class="btn btn-sm btn-outline-danger delete-btn">Ištrinti</button>
+                                </div>
+                            {% elif msg.user == user %}
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary edit-btn">Redaguoti</button>
+                                    <button class="btn btn-sm btn-outline-danger delete-btn">Ištrinti</button>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mt-1 chat-content">{{ msg.content|linebreaksbr }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted">Nėra žinučių</div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer">
+                    <form id="chat-form" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <textarea class="form-control" id="chat-input" rows="1" placeholder="Rašykite žinutę..." required></textarea>
+                        <button type="submit" class="btn btn-primary">Siųsti</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function scrollToBottom() {
+    var chat = document.getElementById('chat-messages');
+    chat.scrollTop = chat.scrollHeight;
+}
+scrollToBottom();
+
+document.getElementById('chat-form').onsubmit = function(e) {
+    e.preventDefault();
+    var input = document.getElementById('chat-input');
+    var content = input.value.trim();
+    if (!content) return;
+    var form = this;
+    var csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch('{% url 'send_message' %}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrf},
+        body: new URLSearchParams({content: content})
+    });
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        }
+    });
+};
+
+document.querySelectorAll('.edit-btn').forEach(function(btn) {
+    btn.onclick = function() {
+        var msgDiv = this.closest('.chat-message');
+        var contentDiv = msgDiv.querySelector('.chat-content');
+        var oldContent = contentDiv.innerText;
+        var newContent = prompt('Redaguoti žinutę:', oldContent);
+        if (newContent !== null && newContent.trim() !== '' && newContent !== oldContent) {
+            var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            fetch(`/chat/edit/${msgDiv.dataset.id}/`, {
+                method: 'POST',
+                headers: {'X-CSRFToken': csrf},
+                body: new URLSearchParams({content: newContent})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                }
+            });
+        }
+    };
+});
+
+document.querySelectorAll('.delete-btn').forEach(function(btn) {
+    btn.onclick = function() {
+        if (!confirm('Ar tikrai norite ištrinti žinutę?')) return;
+        var msgDiv = this.closest('.chat-message');
+        var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch(`/chat/delete/${msgDiv.dataset.id}/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrf}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            }
+        });
+    };
+});
+</script>
+{% endblock %} 

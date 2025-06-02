@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Administratoriaus Skydelis</h1>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group">
+                <a href="#" class="list-group-item list-group-item-action active">Vartotojų Valdymas</a>
+                <a href="#" class="list-group-item list-group-item-action">Pranešimų Valdymas</a>
+                <a href="#" class="list-group-item list-group-item-action">Sistemos Nustatymai</a>
+                <a href="#" class="list-group-item list-group-item-action">Saugumo Nustatymai</a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Vartotojų Valdymas</h5>
+                </div>
+                <div class="card-body">
+                    <p>Čia galite valdyti vartotojų teises, pridėti arba pašalinti vartotojus, keisti jų teises ir t.t.</p>
+                    <button class="btn btn-primary">Pridėti Vartotoją</button>
+                    <button class="btn btn-danger">Pašalinti Vartotoją</button>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Pranešimų Valdymas</h5>
+                </div>
+                <div class="card-body">
+                    <p>Čia galite valdyti pranešimus, pridėti naujus pranešimus, redaguoti esamus, ištrinti pranešimus ir t.t.</p>
+                    <button class="btn btn-primary">Pridėti Pranešimą</button>
+                    <button class="btn btn-danger">Ištrinti Pranešimą</button>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Sistemos Nustatymai</h5>
+                </div>
+                <div class="card-body">
+                    <p>Čia galite keisti sistemos parametrus, pavyzdžiui, pranešimų rodymo laiką, vartotojų teises ir kitus svarbius nustatymus.</p>
+                    <button class="btn btn-primary">Keisti Nustatymus</button>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Saugumo Nustatymai</h5>
+                </div>
+                <div class="card-body">
+                    <p>Čia galite valdyti sistemos saugumą, pavyzdžiui, keisti slaptažodžių politiką, valdyti prieigos teises ir t.t.</p>
+                    <button class="btn btn-primary">Keisti Saugumo Nustatymus</button>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Pranešimų Sistema</h5>
+                </div>
+                <div class="card-body">
+                    <p>Čia galite gauti pranešimus apie svarbius įvykius sistemoje, pavyzdžiui, apie naujus vartotojus, klaidas arba kitus svarbius įvykius.</p>
+                    <button class="btn btn-primary">Peržiūrėti Pranešimus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

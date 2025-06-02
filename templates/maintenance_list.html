@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block extra_css %}
+<style>
+    @keyframes highlightCard {
+        0% { transform: scale(1); box-shadow: 0 0 0 rgba(33, 150, 243, 0); }
+        25% { transform: scale(1.02); box-shadow: 0 0 20px rgba(33, 150, 243, 0.6); }
+        50% { transform: scale(1); box-shadow: 0 0 0 rgba(33, 150, 243, 0); }
+        75% { transform: scale(1.02); box-shadow: 0 0 20px rgba(33, 150, 243, 0.6); }
+        100% { transform: scale(1); box-shadow: 0 0 0 rgba(33, 150, 243, 0); }
+    }
+    .highlight-animation {
+        animation: highlightCard 2s ease-in-out 2;
+        border: 2px solid #2196F3 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <button class="btn btn-outline-secondary mb-3" onclick="history.back()"><i class="bi bi-arrow-left"></i> Grįžti atgal</button>
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3><i class="bi bi-tools"></i> Remontai ir darbai</h3>
+                <div>
+                    {% if user.is_staff %}
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createMaintenanceModal">
+                        <i class="bi bi-plus-circle"></i> Sukurti naują
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Past Works -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Atlikti darbai</h5>
+                </div>
+                <div class="card-body">
+                    {% if past_works %}
+                    <div class="row">
+                        {% for work in past_works %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100" data-maintenance-id="{{ work.id }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ work.title }}</h5>
+                                    <p class="card-text">{{ work.description }}</p>
+                                    <p class="text-muted">
+                                        <small>
+                                            Laikotarpis: {{ work.start_date|date:"Y-m-d" }} - {{ work.end_date|date:"Y-m-d" }}
+                                        </small>
+                                    </p>
+                                    {% if work.images.all %}
+                                    <div class="row g-2">
+                                        {% for image in work.images.all %}
+                                        <div class="col-md-4">
+                                            <a href="{{ image.image.url }}" target="_blank">
+                                                <img src="{{ image.image.url }}" class="img-fluid rounded" alt="Nuotrauka">
+                                            </a>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% if user.is_staff %}
+                                <div class="card-footer">
+                                    <button class="btn btn-danger btn-sm delete-maintenance" data-maintenance-id="{{ work.id }}">
+                                        <i class="bi bi-trash"></i> Ištrinti
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center mb-0">Nėra atliktų darbų</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Works -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Dabartiniai darbai</h5>
+                </div>
+                <div class="card-body">
+                    {% if current_works %}
+                    <div class="row">
+                        {% for work in current_works %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100" data-maintenance-id="{{ work.id }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ work.title }}</h5>
+                                    <p class="card-text">{{ work.description }}</p>
+                                    <p class="text-muted">
+                                        <small>
+                                            Pradžia: {{ work.start_date|date:"Y-m-d" }}
+                                            {% if work.end_date %}
+                                            <br>Planuojama pabaiga: {{ work.end_date|date:"Y-m-d" }}
+                                            {% endif %}
+                                        </small>
+                                    </p>
+                                    {% if work.images.all %}
+                                    <div class="row g-2">
+                                        {% for image in work.images.all %}
+                                        <div class="col-md-4">
+                                            <a href="{{ image.image.url }}" target="_blank">
+                                                <img src="{{ image.image.url }}" class="img-fluid rounded" alt="Nuotrauka">
+                                            </a>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% if user.is_staff %}
+                                <div class="card-footer">
+                                    <button class="btn btn-success btn-sm complete-maintenance" data-maintenance-id="{{ work.id }}">
+                                        <i class="bi bi-check-circle"></i> Atlikti
+                                    </button>
+                                    <button class="btn btn-danger btn-sm delete-maintenance" data-maintenance-id="{{ work.id }}">
+                                        <i class="bi bi-trash"></i> Ištrinti
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center mb-0">Nėra vykstančių darbų</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Future Works -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Ateities darbai</h5>
+                </div>
+                <div class="card-body">
+                    {% if future_works %}
+                    <div class="row">
+                        {% for work in future_works %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100" data-maintenance-id="{{ work.id }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ work.title }}</h5>
+                                    <p class="card-text">{{ work.description }}</p>
+                                    <p class="text-muted">
+                                        <small>
+                                            Planuojama pradžia: {{ work.start_date|date:"Y-m-d" }}
+                                            {% if work.end_date %}
+                                            <br>Planuojama pabaiga: {{ work.end_date|date:"Y-m-d" }}
+                                            {% endif %}
+                                        </small>
+                                    </p>
+                                </div>
+                                {% if user.is_staff %}
+                                <div class="card-footer">
+                                    <button class="btn btn-danger btn-sm delete-maintenance" data-maintenance-id="{{ work.id }}">
+                                        <i class="bi bi-trash"></i> Ištrinti
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center mb-0">Nėra suplanuotų darbų</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Maintenance Modal -->
+{% if user.is_staff %}
+<div class="modal fade" id="createMaintenanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Naujas remontas/darbas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data" action="{% url 'create_maintenance' %}" id="maintenanceForm">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Atšaukti</button>
+                <button type="submit" form="maintenanceForm" class="btn btn-primary">Sukurti</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Complete Maintenance Modal -->
+<div class="modal fade" id="completeMaintenanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Darbo užbaigimas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" id="completeMaintenanceForm">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <p>Ar tikrai norite pažymėti šį darbą kaip atliktą?</p>
+                    <div class="mb-3">
+                        <label for="completion_images" class="form-label">Pridėti nuotraukas</label>
+                        <input type="file" class="form-control" id="completion_images" name="images" multiple accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Atšaukti</button>
+                    <button type="submit" class="btn btn-success">Patvirtinti</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gauname highlight parametrą iš URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightId = urlParams.get('highlight');
+    
+    if (highlightId) {
+        const card = document.querySelector(`[data-maintenance-id="${highlightId}"]`);
+        if (card) {
+            // Pridedame klasę su vėlavimu, kad būtų laiko DOM'ui pilnai užsikrauti
+            setTimeout(() => {
+                card.classList.add('highlight-animation');
+                // Automatiškai slenkame iki pažymėto elemento
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    }
+
+    // Delete maintenance
+    const deleteButtons = document.querySelectorAll('.delete-maintenance');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (!confirm('Ar tikrai norite ištrinti šį remontą/darbą?')) {
+                return;
+            }
+            
+            const maintenanceId = this.dataset.maintenanceId;
+            
+            fetch(`/delete-maintenance/${maintenanceId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.reload();
+                }
+            });
+        });
+    });
+
+    // Complete maintenance
+    const completeButtons = document.querySelectorAll('.complete-maintenance');
+    const completeModal = new bootstrap.Modal(document.getElementById('completeMaintenanceModal'));
+    const completeForm = document.getElementById('completeMaintenanceForm');
+
+    completeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const maintenanceId = this.dataset.maintenanceId;
+            completeForm.action = `/complete-maintenance/${maintenanceId}/`;
+            completeModal.show();
+        });
+    });
+
+    // Handle complete maintenance form submission
+    completeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitButton = this.querySelector('button[type="submit"]');
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                // Uždarome modalinį langą
+                const modal = bootstrap.Modal.getInstance(document.getElementById('completeMaintenanceModal'));
+                modal.hide();
+                // Perkrauname puslapį
+                window.location.reload();
+            } else {
+                throw new Error(data.message || 'Įvyko klaida');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Įvyko klaida. Bandykite dar kartą.');
+        });
+    });
+});
+</script>
+{% endblock %} 

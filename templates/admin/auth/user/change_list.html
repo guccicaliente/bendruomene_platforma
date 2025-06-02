@@ -1,0 +1,7 @@
+{% extends "admin/change_list.html" %}
+{% block object-tools %}
+    <div style="margin-bottom: 20px;">
+        <a href="/admin/auth/user/add/" class="button" style="background:#0ff;color:#222;font-weight:bold;padding:6px 12px;border-radius:4px;text-decoration:none;">+ Pridėti vartotoją</a>
+    </div>
+    {{ block.super }}
+{% endblock %} 

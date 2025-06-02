@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <button class="btn btn-outline-secondary mb-3" onclick="history.back()"><i class="fas fa-arrow-left me-2"></i>Grįžti atgal</button>
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <!-- Active Votings Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-vote-yea me-2"></i>Aktyvūs balsavimai</h5>
+                    <div>
+                        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#createVotingModal">
+                            <i class="fas fa-plus me-2"></i>Naujas balsavimas
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if active_topics %}
+                        {% for item in active_topics %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="card-title">{{ item.topic.title }}</h5>
+                                            <p class="card-text text-muted">{{ item.topic.description }}</p>
+                                            <small class="text-muted">
+                                                Sukurta: {{ item.topic.created_at|date:"Y-m-d" }}
+                                                {% if item.topic.end_date %}
+                                                    | Pabaiga: {{ item.topic.end_date|date:"Y-m-d" }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-warning" onclick="editVoting('{{ item.topic.id }}')">
+                                                <i class="fas fa-edit"></i> Redaguoti
+                                            </button>
+                                            <button class="btn btn-danger" onclick="deleteVoting('{{ item.topic.id }}', 'aktyvų')">
+                                                <i class="fas fa-trash"></i> Ištrinti
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="vote-stats">
+                                            <span class="badge bg-success me-2">
+                                                <i class="fas fa-thumbs-up me-1"></i>Už: {{ item.votes_for }}
+                                            </span>
+                                            <span class="badge bg-danger me-2">
+                                                <i class="fas fa-thumbs-down me-1"></i>Prieš: {{ item.votes_against }}
+                                            </span>
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-users me-1"></i>Viso balsų: {{ item.votes_count }}
+                                            </span>
+                                        </div>
+                                        <form method="post" action="{% url 'complete_voting' item.topic.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-check me-1"></i>Užbaigti balsavimą
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Nėra aktyvių balsavimų
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Completed Votings Section -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Užbaigti balsavimai</h5>
+                </div>
+                <div class="card-body">
+                    {% if completed_topics %}
+                        {% for item in completed_topics %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="card-title">{{ item.topic.title }}</h5>
+                                            <p class="card-text text-muted">{{ item.topic.description }}</p>
+                                            <small class="text-muted">
+                                                Sukurta: {{ item.topic.created_at|date:"Y-m-d" }} | 
+                                                Užbaigta: {{ item.topic.completed_at|date:"Y-m-d" }}
+                                                {% if item.topic.end_date %}
+                                                    | Planuota pabaiga: {{ item.topic.end_date|date:"Y-m-d" }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <button class="btn btn-danger" onclick="deleteVoting('{{ item.topic.id }}', 'užbaigtą')">
+                                            <i class="fas fa-trash"></i> Ištrinti
+                                        </button>
+                                    </div>
+                                    <hr>
+                                    <div class="vote-stats">
+                                        <span class="badge bg-success me-2">
+                                            <i class="fas fa-thumbs-up me-1"></i>Už: {{ item.votes_for }}
+                                        </span>
+                                        <span class="badge bg-danger me-2">
+                                            <i class="fas fa-thumbs-down me-1"></i>Prieš: {{ item.votes_against }}
+                                        </span>
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-users me-1"></i>Viso balsų: {{ item.votes_count }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Nėra užbaigtų balsavimų
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Voting Modal -->
+<div class="modal fade" id="createVotingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Naujas balsavimas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'create_voting' %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Atšaukti</button>
+                    <button type="submit" class="btn btn-primary">Sukurti</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Voting Modal -->
+<div class="modal fade" id="editVotingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Redaguoti balsavimą</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editVotingForm" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Atšaukti</button>
+                    <button type="submit" class="btn btn-primary">Išsaugoti</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- CSRF Token for JavaScript -->
+{% csrf_token %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/light.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script type="text/javascript" src="{% static 'js/voting.js' %}"></script>
+<script type="text/javascript">
+    window.deleteVoting = deleteVoting;
+    window.editVoting = editVoting;
+</script>
+{% endblock %} 

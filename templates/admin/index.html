@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<style>
+    .model-add-link, .addlink { display: none !important; }
+</style>
+{{ block.super }}
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+    var veiklosZurnalas = Array.from(document.querySelectorAll('th, td')).find(el => el.textContent && el.textContent.trim() === 'Veiklos žurnalas');
+    if (veiklosZurnalas) {
+        var row = veiklosZurnalas.closest('tr');
+        if (row) {
+            var newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <th class="model-teisiu-valdymas">
+                </th>
+                <td></td>
+                <td></td>
+            `;
+            row.parentNode.insertBefore(newRow, row.nextSibling);
+        }
+    }
+});
+</script>
+<div class="container mt-4" style="display:none">
+</div>
+{% endblock %} 

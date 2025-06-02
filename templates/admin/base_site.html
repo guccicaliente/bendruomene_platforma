@@ -1,0 +1,10 @@
+{% extends "admin/base.html" %}
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .model-add-link, .addlink { display: none !important; }
+</style>
+{% endblock %}
+{% block content %}
+{{ block.super }}
+{% endblock %} 
