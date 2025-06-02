@@ -1,0 +1,19 @@
+stages:
+  - build
+  - test
+
+image: python:3.11  
+
+before_script:
+  - pip install --upgrade pip
+  - pip install -r requirements.txt
+
+build:
+  stage: build
+  script:
+    - echo "Projektas sėkmingai paruoštas"
+
+test:
+  stage: test
+  script:
+    - python manage.py test
